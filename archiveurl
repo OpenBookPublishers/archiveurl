@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+usage()
+{
+cat << EOF
+Make a POST request to Internet Archive's Wayback Machine to save a URL.
+
+Multiple URLs (one per line) can be provided,
+e.g. piping: 'cat urls.txt | archiveurl'
+
+You may use this script together with "geturls"[1] to automatically archive all
+links insed a web page,
+e.g. 'geturls https://www.openbookpublishers.com/htmlreader/978-1-78374-323-0/main.html | archiveurl'
+
+[1] https://github.com/OpenBookPublishers/geturls
+
+(c) Javier Arias, Open Book Publishers, July 2018
+Use of this software is governed by the terms of the MIT -- see LICENSE
+
+OPTIONS:
+   -h       Show this message
+EOF
+}
+
+BASE="http://web.archive.org/save/"
+AGENT="Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:40.0) Gecko/20100101 Firefox/40.0"
+
+while getopts "vh" OPTION
+do
+    case $OPTION in
+        h)
+            usage
+            exit 1
+            ;;
+        ?)
+            usage
+            exit
+            ;;
+    esac
+done
+
+while read line; do
+    url=$line
+    toarchive="${BASE}${line}"
+    code=$(curl --silent \
+                --location \
+                --write-out "%{http_code}" \
+                --user-agent "${AGENT}" \
+                --output /dev/null \
+                "${toarchive}")
+
+    if [[ "$code" == 2* ]]; then
+        echo "Archived: ${url}"
+    else
+        >&2 echo "Failed: ${url}"
+    fi
+done < "${1:-/dev/stdin}"
+
