@@ -24,6 +24,8 @@ EOF
 
 BASE="http://web.archive.org/save/"
 AGENT="Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:40.0) Gecko/20100101 Firefox/40.0"
+DEFAULT_EXCEPT="$(dirname $0)/exceptions.txt"
+EXCEPT=${EXCEPTION_FILE:-$DEFAULT_EXCEPT}
 
 while getopts "vh" OPTION
 do
@@ -42,6 +44,12 @@ done
 while read line; do
     url=$line
     toarchive="${BASE}${line}"
+
+    if [ -f "$EXCEPT" ] && grep -Fxq "$url" $EXCEPT; then
+        # URL is exempt
+        continue
+    fi
+
     code=$(curl --silent \
                 --location \
                 --write-out "%{http_code}" \
