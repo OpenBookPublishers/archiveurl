@@ -12,6 +12,8 @@ You may use this script together with "geturls"[1] to automatically archive all
 links insed a web page,
 e.g. 'geturls https://www.openbookpublishers.com/htmlreader/978-1-78374-323-0/main.html | archiveurl'
 
+You may specify a list of URLs that should not be archived, either using the default file './exceptions.txt' or through env vars: 'export EXCEPTION_FILE=/path'.
+
 [1] https://github.com/OpenBookPublishers/geturls
 
 (c) Javier Arias, Open Book Publishers, July 2018
@@ -24,6 +26,8 @@ EOF
 
 BASE="http://web.archive.org/save/"
 AGENT="Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:40.0) Gecko/20100101 Firefox/40.0"
+DEFAULT_EXCEPT="$(dirname $0)/exceptions.txt"
+EXCEPT=${EXCEPTION_FILE:-$DEFAULT_EXCEPT}
 
 while getopts "vh" OPTION
 do
@@ -42,6 +46,12 @@ done
 while read line; do
     url=$line
     toarchive="${BASE}${line}"
+
+    if [ -f "$EXCEPT" ] && grep -Fxq "$url" $EXCEPT; then
+        # URL is exempt
+        continue
+    fi
+
     code=$(curl --silent \
                 --location \
                 --write-out "%{http_code}" \
