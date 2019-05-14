@@ -60,9 +60,9 @@ while read line; do
                 "${toarchive}")
 
     if [[ "$code" == 2* ]]; then
-        echo "Archived: ${url}"
+        echo "Archived (${code}): ${url}"
     else
-        >&2 echo "Failed: ${url}"
+        >&2 echo "Failed (${code}): ${url}"
     fi
 done < "${1:-/dev/stdin}"
 
