@@ -63,6 +63,10 @@ while read line; do
         echo "Archived (${code}): ${url}"
     else
         >&2 echo "Failed (${code}): ${url}"
+        if [[ "$code" == 429 ]]; then
+            # Too Many Requests error - pause before sending next request
+            sleep 5
+        fi
     fi
 done < "${1:-/dev/stdin}"
 
